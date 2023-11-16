@@ -1,0 +1,59 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: tenant
+  namespace: default
+spec:
+  virtualhost:
+    fqdn: tenant.spg.com
+  routes:
+  - services:
+    - name: whoami
+      port: 80
+    conditions:
+    - prefix: /whoami
+    pathRewritePolicy:
+      replacePrefix:
+      - prefix: /whoami
+        replacement: /
+  - services:
+    - name: myapp
+      port: 80
+    conditions:
+    - prefix: /myapp
+    pathRewritePolicy:
+      replacePrefix:
+      - prefix: /myapp
+        replacement: /
+  - services:
+    - name: nginx1
+      port: 80
+    conditions:
+    - prefix: /nginx1
+    pathRewritePolicy:
+      replacePrefix:
+      - prefix: /nginx1
+        replacement: /
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: weight-shifting
+  namespace: default
+spec:
+  virtualhost:
+    fqdn: weights.localhost
+    # rateLimitPolicy:
+    #   local:
+    #     requests: 1
+    #     unit: second
+    #     burst: 5
+  routes:
+    - services:
+        - name: nginx1
+          port: 80
+          weight: 10
+        - name: nginx2
+          port: 80
+          weight: 90
+
